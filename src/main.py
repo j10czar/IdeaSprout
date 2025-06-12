@@ -64,7 +64,7 @@ if st.session_state.page == "Step 1: Process":
         st.session_state.tree_name = tree_name
         st.session_state.transcripts = transcripts
         st.session_state.page = "Step 2: Export"
-        st.experimental_rerun()
+        st.rerun()
 
 elif st.session_state.page == "Step 2: Export":
     if not st.session_state.processed:
@@ -74,4 +74,5 @@ elif st.session_state.page == "Step 2: Export":
         st.write(f"thought tree: {st.session_state.tree_name}")
         # display transcripts or export logic here
         for name, text in st.session_state.transcripts.items():
-            st.markdown(f"**{name}**: {text[:100]}...")
+            st.markdown(f"**{name}**")
+            st.write(text)

@@ -2,13 +2,16 @@ import whisper
 import tempfile
 import os
 from pathlib import Path
+import torch
+# Clears torch path so it doesnt conflict with streamlit
+torch.classes.__path__ = []
 
 
 class WhisperTranscriber:
 
     def __init__(self, progress_callback=None):
         self.progress_callback = progress_callback
-        self.model = whisper.load_model("small")
+        self.model = whisper.load_model("base")
 
     def process(self, folder_path):
         files = list(Path(folder_path).glob("*"))
