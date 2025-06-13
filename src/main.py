@@ -3,6 +3,7 @@ from whisper_transcriber import WhisperTranscriber
 import tempfile
 import streamlit as st
 import os
+from transcript_processor import TranscriptProcessor
 
 st.set_page_config(layout="wide")
 
@@ -42,22 +43,39 @@ if st.session_state.page == "Step 1: Process":
     # only enable when both tree_name and at least one file are provided
     can_process = bool(tree_name and audio_files)
     if st.button("Process Files", disabled=not can_process):
-        progress_bar = st.progress(0)
+        progress_text = st.empty()
+        progress_bar = st.empty()
 
-        # callback to update progress bar
-        def update_progress(current, total):
+        # ---- TRANSCRIBING ----
+        progress_text.text("Transcribing Files...")
+        bar = progress_bar.progress(0)
+
+        def update_progress_transcribe(current, total):
             percent = int(current / total * 100)
-            progress_bar.progress(percent)
+            bar.progress(percent)
 
-        # write uploads to a temp directory and process
         with tempfile.TemporaryDirectory() as tmp_dir:
             for upload in audio_files:
                 dest = os.path.join(tmp_dir, upload.name)
                 with open(dest, "wb") as f:
                     f.write(upload.getbuffer())
 
-            transcriber = WhisperTranscriber(progress_callback=update_progress)
+            transcriber = WhisperTranscriber(
+                progress_callback=update_progress_transcribe)
             transcripts = transcriber.process(tmp_dir)
+
+        # ---- PROCESSING ----
+        progress_text.text("Processing Text...")
+        bar.progress(0)  # reset progress bar to 0
+
+        def update_progress_process(current, total):
+            percent = int(current / total * 100)
+            bar.progress(percent)
+
+        processor = TranscriptProcessor(
+            transcripts, progress_callback=update_progress_process)
+
+        processor.process_files()
 
         # store results in session state
         st.session_state.processed = True
